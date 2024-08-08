@@ -4,7 +4,7 @@
 
 ## Dependency 
 
-LittleAny is in the "Major Version Zero" phase, allowing for rapid development based on community feedback. 
+Cast is in the "Major Version Zero" phase, allowing for rapid development based on community feedback. 
 
 Refer to [this semantic versioning reference](https://docs.swift.org/package-manager/PackageDescription/PackageDescription.html#version) for the following. 
 
