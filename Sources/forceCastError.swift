@@ -1,4 +1,6 @@
-/// A mechanism to interface between untyped and typed errors.
+// MARK: - synchronous
+
+/// Retrieve a value or convert an untyped error to a known type.
 ///
 /// When you know for certain that a value may only throw one type of error,
 /// but that guarantee is not (or, due to compiler bugs, cannot be) represented in the type system,
@@ -16,7 +18,7 @@ public func forceCastError<Value, Error>(
   catch { throw error as! Error }
 }
 
-/// A mechanism to interface between untyped and typed errors.
+/// Convert a closure that throws `any Error` to a typed throwing closure.
 ///
 /// When you know for certain that a closure may only throw one type of error,
 /// but that guarantee is not (or, due to compiler bugs, cannot be) represented in the type system,
@@ -24,35 +26,21 @@ public func forceCastError<Value, Error>(
 /// - Parameters:
 ///   - errorType: The error type known for certain to be thrown by `value`.
 ///   - value: A closure that might throw an `Error`.
-/// - Bug: This should use "`each Parameter`" to avoid necessitating an overload
-///   for closures that take no parameters, but that doesn't compile.
-public func forceCastError<Value, Error>(
+/// - Important: A crash will occur if `value` throws any type but `Error`.
+/// - Returns: A closure. It will have typed error information, which is good,
+/// but of course will lose argument labels if `value` is a function.
+public func forceCastError<each Input, Value, Error>(
   to errorType: Error.Type = Error.self,
-  _ value: @escaping () throws -> Value
-) -> () throws(Error) -> Value {
-  { try forceCastError(to: Error.self, value()) }
+  _ value: @escaping (repeat each Input) throws -> Value
+) -> (repeat each Input) throws(Error) -> Value {
+  { (input: repeat each Input) in
+    try forceCastError(to: Error.self, value(repeat each input))
+  }
 }
 
-/// A mechanism to interface between untyped and typed errors.
-///
-/// When you know for certain that a closure may only throw one type of error,
-/// but that guarantee is not (or, due to compiler bugs, cannot be) represented in the type system,
-/// you can use this to "convert" it to "typed throws".
-/// - Parameters:
-///   - errorType: The error type known for certain to be thrown by `value`.
-///   - value: A closure that might throw an `Error`.
-/// - Bug: This should use "`each Parameter`" to avoid necessitating an overload
-///   for closures that take no parameters, but that doesn't compile.
-public func forceCastError<Input, Value, Error>(
-  to errorType: Error.Type = Error.self,
-  _ value: @escaping (Input) throws -> Value
-) -> (Input) throws(Error) -> Value {
-  { try forceCastError(to: Error.self, value($0)) }
-}
+// MARK: - asynchronous
 
-// MARK: - async
-
-/// A mechanism to interface between untyped and typed errors.
+/// Retrieve a value or convert an untyped error to a known type.
 ///
 /// When you know for certain that a value may only throw one type of error,
 /// but that guarantee is not (or, due to compiler bugs, cannot be) represented in the type system,
@@ -70,7 +58,7 @@ public func forceCastError<Value, Error>(
   catch { throw error as! Error }
 }
 
-/// A mechanism to interface between untyped and typed errors.
+/// Convert a closure that throws `any Error` to a typed throwing closure.
 ///
 /// When you know for certain that a closure may only throw one type of error,
 /// but that guarantee is not (or, due to compiler bugs, cannot be) represented in the type system,
@@ -78,28 +66,14 @@ public func forceCastError<Value, Error>(
 /// - Parameters:
 ///   - errorType: The error type known for certain to be thrown by `value`.
 ///   - value: A closure that might throw an `Error`.
-/// - Bug: This should use "`each Parameter`" to avoid necessitating an overload
-///   for closures that take no parameters, but that doesn't compile.
-public func forceCastError<Value, Error>(
+/// - Important: A crash will occur if `value` throws any type but `Error`.
+/// - Returns: A closure. It will have typed error information, which is good,
+/// but of course will lose argument labels if `value` is a function.
+public func forceCastError<each Input, Value, Error>(
   to errorType: Error.Type = Error.self,
-  _ value: @escaping () async throws -> Value
-) -> () async throws(Error) -> Value {
-  { try await forceCastError(to: Error.self, await value()) }
-}
-
-/// A mechanism to interface between untyped and typed errors.
-///
-/// When you know for certain that a closure may only throw one type of error,
-/// but that guarantee is not (or, due to compiler bugs, cannot be) represented in the type system,
-/// you can use this to "convert" it to "typed throws".
-/// - Parameters:
-///   - errorType: The error type known for certain to be thrown by `value`.
-///   - value: A closure that might throw an `Error`.
-/// - Bug: This should use "`each Parameter`" to avoid necessitating an overload
-///   for closures that take no parameters, but that doesn't compile.
-public func forceCastError<Input, Value, Error>(
-  to errorType: Error.Type = Error.self,
-  _ value: @escaping (Input) async throws -> Value
-) -> (Input) async throws(Error) -> Value {
-  { try await forceCastError(to: Error.self, await value($0)) }
+  _ value: @escaping (repeat each Input) async throws -> Value
+) -> (repeat each Input) async throws(Error) -> Value {
+  { (input: repeat each Input) in
+    try await forceCastError(to: Error.self, await value(repeat each input))
+  }
 }
