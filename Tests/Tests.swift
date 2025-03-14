@@ -1,7 +1,7 @@
 import Cast
 import Testing
 
-struct CastTests {
+struct Tests {
   @Test func concreteTypes() throws {
     _ = try cast(0) as Int
     #expect(throws: CastError.self) { try cast(0) as Bool }
