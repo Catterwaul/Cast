@@ -1,3 +1,5 @@
+infix operator ¿!
+
 // MARK: - synchronous
 
 /// Retrieve a value or convert an untyped error to a known type.
@@ -9,10 +11,10 @@
 ///   - errorType: The error type known for certain to be thrown by `value`.
 ///   - value: A value that might throw an `Error`.
 /// - Important: A crash will occur if `value` throws any type but `Error`.
-/// - Bug: [`errorType` must be explicitly provided](https://github.com/swiftlang/swift/issues/75674).
-public func forceCastError<Value, Error>(
-  to errorType: Error.Type = Error.self,
-  _ value: @autoclosure () throws -> Value
+/// - Bug: [`errorType` would have to be explicitly provided, if this were a function](https://github.com/swiftlang/swift/issues/75674). So an operator is cleaner.
+public func ¿! <Value, Error>(
+  value: @autoclosure () throws -> Value,
+  errorType: Error.Type
 ) throws(Error) -> Value {
   do { return try value() }
   catch { throw error as! Error }
@@ -25,16 +27,16 @@ public func forceCastError<Value, Error>(
 /// you can use this to "convert" it to "typed throws".
 /// - Parameters:
 ///   - errorType: The error type known for certain to be thrown by `value`.
-///   - value: A closure that might throw an `Error`.
+///   - untypedErrorClosure: A closure that might throw an `Error`.
 /// - Important: A crash will occur if `value` throws any type but `Error`.
 /// - Returns: A closure. It will have typed error information, which is good,
 /// but of course will lose argument labels if `value` is a function.
 public func forceCastError<each Input, Value, Error>(
   to errorType: Error.Type = Error.self,
-  _ value: @escaping (repeat each Input) throws -> Value
+  _ untypedErrorClosure: @escaping (repeat each Input) throws -> Value
 ) -> (repeat each Input) throws(Error) -> Value {
   { (input: repeat each Input) in
-    try forceCastError(to: Error.self, value(repeat each input))
+    try untypedErrorClosure(repeat each input) ¿! Error.self
   }
 }
 
@@ -49,10 +51,10 @@ public func forceCastError<each Input, Value, Error>(
 ///   - errorType: The error type known for certain to be thrown by `value`.
 ///   - value: A value that might throw an `Error`.
 /// - Important: A crash will occur if `value` throws any type but `Error`.
-/// - Bug: [`errorType` must be explicitly provided](https://github.com/swiftlang/swift/issues/75674).
-public func forceCastError<Value, Error>(
-  to errorType: Error.Type = Error.self,
-  _ value: @autoclosure () async throws -> Value
+/// - Bug: [`errorType` would have to be explicitly provided, if this were a function](https://github.com/swiftlang/swift/issues/75674). So an operator is cleaner.
+public func ¿! <Value, Error>(
+  value: @autoclosure () async throws -> Value,
+  errorType: Error.Type
 ) async throws(Error) -> Value {
   do { return try await value() }
   catch { throw error as! Error }
@@ -74,6 +76,6 @@ public func forceCastError<each Input, Value, Error>(
   _ value: @escaping (repeat each Input) async throws -> Value
 ) -> (repeat each Input) async throws(Error) -> Value {
   { (input: repeat each Input) in
-    try await forceCastError(to: Error.self, await value(repeat each input))
+    try await (await value(repeat each input)) ¿! Error.self
   }
 }
